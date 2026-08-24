@@ -1,136 +1,90 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 
-function Shell({
-  title,
-  subtitle,
-  badge = "Portfolio demo · local-only",
-  children,
-}: {
+type Reel = {
+  id: string;
   title: string;
-  subtitle: string;
-  badge?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-black dark:text-zinc-100">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <header className="mb-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{badge}</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
-        </header>
-        {children}
-        <footer className="mt-10 border-t border-zinc-200 pt-4 text-xs text-zinc-500 dark:border-zinc-800">
-          Honest demo: no multi-tenant backend. State (if any) stays in this browser.
-        </footer>
-      </div>
-    </div>
+  category: string;
+  summary: string;
+  duration: string;
+  index: string;
+};
+
+const REELS: Reel[] = [
+  {
+    id: "os-intro",
+    title: "Intro to the OS",
+    category: "Tutorial",
+    summary: "A short walk through the Solo Empire operating system.",
+    duration: "12:04",
+    index: "A-01",
+  },
+];
+
+const CATEGORIES = ["All", "Tutorial", "Talk"];
+
+export default function VideoGallery() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+  const filtered = useMemo(
+    () => REELS.filter((reel) => {
+      const haystack = `${reel.title} ${reel.summary} ${reel.category}`.toLowerCase();
+      return (category === "All" || reel.category === category) && haystack.includes(query.toLowerCase());
+    }),
+    [category, query],
   );
-}
 
-function Button({
-  children,
-  onClick,
-  variant = "primary",
-  disabled,
-  type = "button",
-  className = "",
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  disabled?: boolean;
-  type?: "button" | "submit";
-  className?: string;
-}) {
-  const base =
-    "inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 " +
-    className;
-  const styles =
-    variant === "primary"
-      ? "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
-      : variant === "secondary"
-        ? "bg-white text-zinc-900 ring-1 ring-zinc-200 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700"
-        : variant === "danger"
-          ? "bg-red-600 text-white hover:bg-red-500"
-          : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900";
   return (
-    <button type={type} disabled={disabled} onClick={onClick} className={`${base} ${styles}`}>
-      {children}
-    </button>
-  );
-}
+    <main className="gallery-shell">
+      <header className="gallery-header">
+        <div className="gallery-mark">B/12</div>
+        <div className="gallery-brand"><strong>THE SCREENING ROOM</strong><span>CURATED REELS / STATIC CATALOG</span></div>
+        <div className="gallery-state"><i /> OPEN REEL · {REELS.length} ON FILE</div>
+      </header>
 
-const inputClass =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950";
+      <section className="gallery-hero">
+        <div>
+          <p className="gallery-kicker">BOOKCHAOWALIT / MOVING IMAGE INDEX</p>
+          <h1>See what the<br /><em>work leaves behind.</em></h1>
+          <p className="gallery-lede">A small contact sheet for talks, walkthroughs, and the moving-image notes worth returning to.</p>
+        </div>
+        <div className="projector" aria-label="Static catalog, not a media player">
+          <span className="projector-lamp" />
+          <div className="projector-body"><i /><i /><i /></div>
+          <b>NO STREAM<br />ATTACHED</b>
+        </div>
+      </section>
 
-function useLocalStorage<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw != null) setValue(JSON.parse(raw) as T);
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
-  }, [key]);
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value, ready]);
-  return [value, setValue] as const;
-}
+      <section className="screening-console" aria-label="Video catalog controls">
+        <div className="console-head">
+          <div><span>CONTACT SHEET / 01</span><h2>Choose a cut.</h2></div>
+          <div className="catalog-count"><strong>{String(filtered.length).padStart(2, "0")}</strong><span>VISIBLE<br />REELS</span></div>
+        </div>
+        <div className="catalog-controls">
+          <label><span>Search the archive</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, subject, category" /></label>
+          <div className="category-tabs" role="group" aria-label="Reel category">
+            {CATEGORIES.map((item) => <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>{item}</button>)}
+          </div>
+        </div>
+        <div className="film-rule"><span>FRAME / CATEGORY / DURATION</span><span>LOCAL INDEX · READ ONLY</span></div>
+        {filtered.length === 0 ? (
+          <div className="empty-reel"><span>NO CUT</span><p>No reel matches this search. Clear the filter to return to the contact sheet.</p></div>
+        ) : (
+          <div className="reel-list">
+            {filtered.map((reel, index) => (
+              <article className="reel-row" key={reel.id}>
+                <div className={`reel-poster poster-${index % 3}`} aria-hidden="true"><span>{reel.index}</span><b>PLAY<br />NOTE</b><i /></div>
+                <div className="reel-copy"><span className="reel-category">{reel.category}</span><h3>{reel.title}</h3><p>{reel.summary}</p></div>
+                <div className="reel-side"><strong>{reel.duration}</strong><span>STATIC CARD</span></div>
+              </article>
+            ))}
+          </div>
+        )}
+        <p className="catalog-note">This is a curated demo catalog. The cards describe a collection; they do not host or play video.</p>
+      </section>
 
-function uid() {
-  return crypto.randomUUID();
-}
-
-async function copyText(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-
-type Item = { id: string; title: string; category: string; summary: string; meta?: string };
-const ITEMS: Item[] = [{"id": "1", "title": "Intro to the OS", "category": "Tutorial", "summary": "Solo Empire walkthrough.", "meta": "12:04"}];
-const CATS = ["Tutorial", "Talk"];
-
-export default function Home() {
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("All");
-  const list = ITEMS.filter(
-    (i) =>
-      (cat === "All" || i.category === cat) &&
-      (i.title + i.summary + i.category).toLowerCase().includes(q.toLowerCase())
-  );
-  return (
-    <Shell title="Video Gallery" subtitle="Curated video cards.">
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input className={`${inputClass} max-w-sm`} placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />
-        {["All", ...CATS].map((c) => (
-          <Button key={c} variant={cat === c ? "primary" : "secondary"} onClick={() => setCat(c)}>
-            {c}
-          </Button>
-        ))}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {list.map((i) => (
-          <article key={i.id} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="text-xs uppercase tracking-wide text-zinc-500">{i.category}</div>
-            <h2 className="mt-1 font-medium">{i.title}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{i.summary}</p>
-            {i.meta ? <p className="mt-3 text-xs text-zinc-500">{i.meta}</p> : null}
-          </article>
-        ))}
-      </div>
-    </Shell>
+      <footer className="gallery-footer"><span>BOOKCHAOWALIT / VIDEO GALLERY</span><span>STATIC DEMO CONTENT · NO MEDIA BACKEND</span></footer>
+    </main>
   );
 }

@@ -19,6 +19,20 @@ See `README.md` for install and run instructions when present.
 - Not claimed as production-ready unless README and tests prove it.
 - Mobile smoke / emulator acceptance is separate and toolchain-dependent.
 
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
+## Current product truth
+
+Inferred from the existing UI and README; user confirmation pending. This is a
+local catalog of static demo video entries with search and category filtering.
+It does not prove that media files are hosted, playable, watched, or backed by
+a multi-user library. Keep the collection honest and make browsing the useful
+action.
+
 ## Source README excerpt
 
 ```
